@@ -11,15 +11,34 @@
 			['disp = new Date();', 'Get a New Date', 'disp'],
 			['x = disp.dbGetISO();', 'See the ISO 8601 Representation', 'x'],
 			['x = disp.dbGetCompare();', 'Get a comparable integer of the Date', 'x'],
-			//['disp = new Date();', 'Get a New Date', 'disp'],
+			['x = disp.dbGetEpoch();', 'Get unix Epoch representation of the Date', 'x'],
+			['disp2 = disp.dbCopy();', 'Get an exact copy of the date', 'disp2'],
+			['disp2 = disp.dbCopyModified([0,2]);', 'Get an copy of the date, but 2 months in the future', 'disp2'],
+			['disp2 = disp.dbCopyModified([0],[0,0,1]);', 'Get an copy of the date, but the first of the month', 'disp2'],
+			['disp.dbAdjust(0,1);', 'Add a year to the date (CHAINABLE!)', 'disp'],
+			['disp.dbAdjust(0,1).dbAdjust(1,2);', 'Add a year and two months to the date', 'disp'],
+			['disp.dbSet(0,2001).dbSet(1,0);', 'Now force the year to 2001 and the month to January (CHAINABLE)', 'disp'],
+			['x = disp.dbGetPOSIX("%A, %B %-d%o, %Y @ %l:%M %p");', 'Get a specific POSIX format', 'x'],
+			['x = disp.dbGetFirstDay();', 'Get the first DAY of the month', 'x'],
+			['x = disp.dbGetLastDate();', 'Get the last DATE of the month', 'x'],
+			['x = disp.dbGetFirstDay(11,2012);', 'Get the first DAY of an arbitrary month (Dec, 2012)', 'x'],
+			['x = disp.dbGetLastDate(1,2012);', 'Get the last DATE of an arbitrary month (Feb, 2012)', 'x'],
+			['x = disp.dbGetOrdinal(2);', 'Get an arbirary ordinal', 'x'],
+			['x = disp.dbGetTimeFormat();', 'Return the time formatted to selected language', 'x'],
+			['x = disp.dbGetDateFormat();', 'Return the date formatted to selected language', 'x'],
+			['x = disp.dbGetDateFormatLong();', 'Return the long date formatted to selected language', 'x'],
 		];
 			
 		$(document).ready(function () {
 			for ( thisOpt in operations ) {
 				$('#output').append('<dl><dt><strong>'+operations[thisOpt][1]+'</strong></dt>');
 				$('#output').append('<dd>'+operations[thisOpt][0]+'</dd>');
-				eval(operations[thisOpt][0]);
-				$('#output').append('<dd><em>'+window[operations[thisOpt][2]]+'</em></dd></dl>');
+				try {
+					eval(operations[thisOpt][0]);
+					$('#output').append('<dd><em>'+window[operations[thisOpt][2]]+'</em></dd></dl>');
+				} catch(e) {
+					$('#output').append('<dd><em>Failed on your browser: '+e.message+'</em></dd></dl>');
+				}
 			}
 		});
 	</script>

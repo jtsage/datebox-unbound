@@ -98,8 +98,21 @@
 			/* Get an array of the date */
 			return [this.getFullYear(), this.getMonth(), this.getDate(), this.getHours(), this.getMinutes(), this.getSeconds(), this.getMilliseconds()];
 		},
+		dbAdjustFullYear: function (amount) { return this.dbAdjust(0,amount); },
+		dbAdjustMonth: function (amount) { return this.dbAdjust(1,amount); },
+		dbAdjustDate: function (amount) { return this.dbAdjust(2,amount); },
+		dbAdjustHours: function (amount) { return this.dbAdjust(3,amount); },
+		dbAdjustMinutes: function (amount) { return this.dbAdjust(4,amount); },
+		dbAdjustSeconds: function (amount) { return this.dbAdjust(5,amount); },
+		dbAdjustMilliseconds: function (amount) { return this.dbAdjust(6,amount); },
 		dbAdjust: function (type, amount) {
 			/* Adjust the date.  Yes, this is chainable */
+			if ( typeof amount !== 'number' ) {
+				throw new Error("Adjustment value not specified");
+			}
+			if ( typeof type !== 'number' ) {
+				throw new Error("Adjustment type not specified");
+			}
 			switch ( type ) {
 				case 0: this.setFullYear(this.getFullYear() + amount); break;
 				case 1: this.setMonth(this.getMonth() + amount); break;
@@ -111,6 +124,13 @@
 			}
 			return this;
 		},
+		dbSetFullYear: function (amount) { return this.dbSet(0,amount); },
+		dbSetMonth: function (amount) { return this.dbSet(1,amount); },
+		dbSetDate: function (amount) { return this.dbSet(2,amount); },
+		dbSetHours: function (amount) { return this.dbSet(3,amount); },
+		dbSetMinutes: function (amount) { return this.dbSet(4,amount); },
+		dbSetSeconds: function (amount) { return this.dbSet(5,amount); },
+		dbSetMilliseconds: function (amount) { return this.dbSet(6,amount); },
 		dbSet: function(type, amount) {
 			/* A chainable version of setWhatever() */
 			switch ( type ) {

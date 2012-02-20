@@ -4,9 +4,9 @@
 			if ( number < 10 ) { return "0" + String(number); }
 			else { return String(number); }
 		},
-		dbGetPOSIX: function (format, thisLang) {
+		dbGetPOSIX: function (format) {
 			var self = this,
-				thisLang = ( typeof thisLang === 'undefined' ) ? self.dbUseLang : thisLang;
+				thisLang = self.dbUseLang;
 				
 			if ( typeof self.dbLang[thisLang] === 'undefined' ) { thisLang = 'default'; }
 				
@@ -142,13 +142,88 @@
 		dbGetDateFormatLong: function () {
 			return this.dbGetPOSIX(this.dbLang[this.dbUseLang].dateFormatLong);
 		},
-		dbGetOrdinal: function (number,thisLang) {
+		dbGetDaysOfWeek: function () {
+			if ( typeof this.dbLang[this.dbUseLang].daysOfWeek === 'undefined' ) {
+				return this.dbLang['default'].daysOfWeek;
+			} else {
+				return this.dbLang[this.dbUseLang].daysOfWeek;
+			}
+		},
+		dbGetDaysOfWeekShort: function () {
+			if ( typeof this.dbLang[this.dbUseLang].daysOfWeekShort === 'undefined' ) {
+				return this.dbLang['default'].daysOfWeekShort;
+			} else {
+				return this.dbLang[this.dbUseLang].daysOfWeekShort;
+			}
+		},
+		dbGetMonthsOfYear: function () {
+			if ( typeof this.dbLang[this.dbUseLang].monthsOfYear === 'undefined' ) {
+				return this.dbLang['default'].monthsOfYear;
+			} else {
+				return this.dbLang[this.dbUseLang].monthsOfYear;
+			}
+		},
+		dbGetMonthsOfYearShort: function () {
+			if ( typeof this.dbLang[this.dbUseLang].monthsOfYearShort === 'undefined' ) {
+				return this.dbLang['default'].monthsOfYearShort;
+			} else {
+				return this.dbLang[this.dbUseLang].monthsOfYearShort;
+			}
+		},
+		dbGetCalendar: function (showDays, showOtherMonth, startDayShow) {
+			if ( typeof showDays === 'undefined' ) { showDays = true; }
+			if ( typeof showOtherMonth === 'undefined' ) { showOtherMonth = true; }
+			if ( typeof startDayShow === 'undefined' ) { startDayShow = 0; }
+			
+			var self = this, rowCount = 0, colCount = 0, thisDay = 1, 
+				nextMonth = 1, cal = [], thisRow = [], stop = false,
+				startDay = self.dbGetFirstDay(),
+				prevLastDate = self.dbCopyModified([0,-1],[0,0,1]).dbGetLastDate(),
+				lastDate = self.dbGetLastDate(),
+				daysOfWeek = self.dbGetDaysOfWeekShort().concat(self.dbGetDaysOfWeekShort());
+				
+			if ( startDayShow !== false ) {
+				startDay = startDay - startDayShow;
+				if ( startDay < 0 ) { startDay = startDay + 7; }
+			} 
+			if ( showDays === true ) {
+				for ( rowCount = 0; rowCount <= 6; rowCount++ ) {
+					thisRow.push(daysOfWeek[(rowCount+startDayShow)%7]);
+				}
+				cal.push(thisRow);
+			}
+			for ( rowCount = 0; rowCount <= 5; rowCount++ ) {
+				if ( stop === false ) {
+					thisRow = []
+					for ( colCount = 0; colCount <= 6; colCount++ ) {
+						if ( rowCount === 0 && colCount < startDay ) {
+							if ( showOtherMonth === true ) {
+								thisRow.push(prevLastDate + (colCount - startDay) + 1);
+							} else {
+								thisRow.push(false);
+							}
+						} else if ( rowCount > 3 && thisDay > lastDate ) {
+							if ( showOtherMonth === true ) {
+								thisRow.push(nextMonth); nextMonth++;
+							} else {
+								thisRow.push(false);
+							}
+							stop = true;
+						} else {
+							thisRow.push(thisDay); thisDay++;
+						}
+					}
+					cal.push(thisRow);
+				}
+			}
+			return cal;
+		},
+		dbGetOrdinal: function (number) {
 			if ( typeof number === 'undefined' ) {
 				number = this.getDate();
+			} else {
+				number = parseInt(number,10);
 			}
-			if ( typeof thisLang === 'undefined' ) {
-				thisLang = this.dbUseLang;
-			} 
 			if ( typeof this.dbLangOrdinal[thisLang] === 'undefined' ) {
 				thisLang = 'default';
 			}

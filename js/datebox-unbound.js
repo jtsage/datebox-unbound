@@ -1,4 +1,4 @@
-(function($, undefined ) {
+(function($) {
 	$.extend(Date.prototype, {
 		_dbZPad: function (number) {
 			if ( number < 10 ) { return "0" + String(number); }
@@ -12,7 +12,7 @@
 				
 			if ( typeof format === 'undefined' ) { throw new Error("No format specified"); }
 				
-			format = format.replace(/%(0|-)*([a-z])/gi, function(match, pad, oper, offset, s) {
+			format = format.replace(/%(0|-)*([a-z])/gi, function(match, pad, oper) {
 				switch ( oper ) {
 					case '%': // Literal %
 						return '%';
@@ -93,6 +93,10 @@
 				((override[4] > 0 ) ? override[4] : this.getMinutes() + adjust[4]),
 				((override[5] > 0 ) ? override[5] : this.getSeconds() + adjust[5]),
 				((override[6] > 0 ) ? override[5] : this.getMilliseconds() + adjust[6]));
+		},
+		dbGetArray: function() {
+			/* Get an array of the date */
+			return [this.getFullYear(), this.getMonth(), this.getDate(), this.getHours(), this.getMinutes(), this.getSeconds(), this.getMilliseconds()];
 		},
 		dbAdjust: function (type, amount) {
 			/* Adjust the date.  Yes, this is chainable */
@@ -194,7 +198,7 @@
 			}
 			for ( rowCount = 0; rowCount <= 5; rowCount++ ) {
 				if ( stop === false ) {
-					thisRow = []
+					thisRow = [];
 					for ( colCount = 0; colCount <= 6; colCount++ ) {
 						if ( rowCount === 0 && colCount < startDay ) {
 							if ( showOtherMonth === true ) {
@@ -218,14 +222,101 @@
 			}
 			return cal;
 		},
+		dbParsePOSIX: function (date, format) {
+			var self = this,
+				adv = null,
+				exp_input = null,
+				exp_format = null,
+				exp_temp = null, i,
+				retty = null,
+				found_date = this.dbGetArray();
+				
+			if ( typeof date === 'undefined' || typeof format === 'undefined' ) { throw new Error("You must supply a date and format"); }
+			
+			adv = format;
+			
+			adv = adv.replace(/%(0|-)*([a-z])/gi, function(match, pad, oper) {
+				switch (oper) {
+					case 'p':
+					case 'P':
+					case 'b':
+					case 'B': return '(' + match + '|' +'.+?' + ')';
+					case 'H':
+					case 'k':
+					case 'I':
+					case 'l':
+					case 'm':
+					case 'M':
+					case 'S':
+					case 'd': return '(' + match + '|' + (( pad === '-' ) ? '[0-9]{1,2}' : '[0-9]{2}') + ')';
+					case 's': return '(' + match + '|' +'[0-9]+' + ')';
+					case 'y': return '(' + match + '|' +'[0-9]{2}' + ')';
+					case 'Y': return '(' + match + '|' +'[0-9]{1,4}' + ')';
+					default: return '.+?';
+				}
+			});
+			adv = new RegExp('^' + adv + '$');
+			exp_input = adv.exec(date);
+			exp_format = adv.exec(format);
+			
+			if ( exp_input === null || exp_input.length !== exp_format.length ) {
+				throw new Error("Formats Mis-Match!");
+			} else {
+				for ( i=0; i<exp_input.length; i++ ) { //0y 1m 2d 3h 4i 5a 6epoch
+					if ( exp_format[i] === '%s' )                { found_date[6] = parseInt(exp_input[i],10); }
+					if ( exp_format[i].match(/^%.*S$/) )         { found_date[5] = parseInt(exp_input[i],10); }
+					if ( exp_format[i].match(/^%.*M$/) )         { found_date[4] = parseInt(exp_input[i],10); }
+					if ( exp_format[i].match(/^%.*(H|k|I|l)$/) ) { found_date[3] = parseInt(exp_input[i],10); }
+					if ( exp_format[i].match(/^%.*d$/) )         { found_date[2] = parseInt(exp_input[i],10); }
+					if ( exp_format[i].match(/^%.*m$/) )         { found_date[1] = parseInt(exp_input[i],10)-1; }
+					if ( exp_format[i].match(/^%.*Y$/) )         { found_date[0] = parseInt(exp_input[i],10); }
+					if ( exp_format[i].match(/^%.*y$/) ) { 
+						if ( parseInt(exp_input[i],10) < 38 ) {
+							found_date[0] = parseInt('20' + exp_input[i],10);
+						} else {
+							found_date[0] = parseInt('19' + exp_input[i],10);
+						}
+					}
+					if ( exp_format[i].match(/^%(0|-)*(p|P)$/) ) {
+						if ( exp_input[i].toLowerCase().charAt(0) === 'a' && found_date[3] === 12 ) {
+							found_date[3] = 0;
+						} else if ( exp_input[i].toLowerCase().charAt(0) === 'p' && found_date[3] !== 12 ) {
+							found_date[3] = found_date[3] + 12;
+						}
+					}
+					if ( exp_format[i] === '%B' ) {
+						exp_temp = $.inArray(exp_input[i], self.dbLang[self.dbUseLang].monthsOfYear);
+						if ( exp_temp > -1 ) { found_date[1] = exp_temp; }
+					}
+					if ( exp_format[i] === '%b' ) {
+						exp_temp = $.inArray(exp_input[i], self.dbLang[self.dbUseLang].monthsOfYearShort);
+						if ( exp_temp > -1 ) { found_date[1] = exp_temp; }
+					}
+				}
+				if ( exp_format[0].match(/%s/) ) {
+					retty = new Date(found_date[6] * 1000);
+				} else if ( exp_format[0].match(/%(.)*(I|l|H|k|s|M)/) ) { 
+					retty = new Date(found_date[0], found_date[1], found_date[2], found_date[3], found_date[4], found_date[5], 0);
+					if ( found_date[0] < 100 ) { date.setFullYear(found_date[0]); }
+				} else {
+					retty = new Date(found_date[0], found_date[1], found_date[2], 0, 0, 0, 0); // Normalize time for raw dates
+					if ( found_date[0] < 100 ) { date.setFullYear(found_date[0]); }
+				}
+				return retty;
+			}
+		},
 		dbGetOrdinal: function (number) {
+			var thisLang; 
+			
 			if ( typeof number === 'undefined' ) {
 				number = this.getDate();
 			} else {
 				number = parseInt(number,10);
 			}
-			if ( typeof this.dbLangOrdinal[thisLang] === 'undefined' ) {
+			if ( typeof this.dbLangOrdinal[this.dbUseLang] === 'undefined' ) {
 				thisLang = 'default';
+			} else { 
+				thisLang = this.dbUseLang;
 			}
 			return this.dbLangOrdinal[thisLang].apply(this, [number]);
 		},
@@ -247,7 +338,7 @@
 				monthsOfYear: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
 				monthsOfYearShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
 				timeFormat: '%k:%M',
-				meridiemLetters: ['am', 'pm'],
+				meridiemLetters: ['am', 'pm']
 			}
 		},
 		dbUseLang: 'default'

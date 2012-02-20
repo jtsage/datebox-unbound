@@ -1,0 +1,32 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" /> 
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>DateBox-Unbound Demos</title>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.6.4.min.js"></script> 
+	<script type="text/javascript" src="http://dev.jtsage.com/DateBox-Unbound/js/datebox-unbound.js"></script>
+	<script type="text/javascript">
+		operations = [
+			['disp = new Date();', 'Get a New Date', 'disp'],
+			['x = disp.dbGetISO();', 'See the ISO 8601 Representation', 'x'],
+			['x = disp.dbGetCompare();', 'Get a comparable integer of the Date', 'x'],
+			//['disp = new Date();', 'Get a New Date', 'disp'],
+		];
+			
+		$(document).ready(function () {
+			for ( thisOpt in operations ) {
+				$('#output').append('<dl><dt><strong>'+operations[thisOpt][1]+'</strong></dt>');
+				$('#output').append('<dd>'+operations[thisOpt][0]+'</dd>');
+				eval(operations[thisOpt][0]);
+				$('#output').append('<dd><em>'+window[operations[thisOpt][2]]+'</em></dd></dl>');
+			}
+		});
+	</script>
+	
+</head>
+<body>
+	<h1>DateBox Unbound</h1>
+	<p>The big DateBox functions in a non-jQM universe.</p>
+	<div id="output"></div>
+</html>

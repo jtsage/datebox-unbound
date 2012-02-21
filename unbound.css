@@ -5,6 +5,9 @@ body,div,dl,dt,dd,span,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textar
 body { font-family: "Droid Sans", sans-serif; }
 
 #header { vertical-align: middle; height: 40px; background-color: #89BF04; margin: 0; padding-left: 20px; color: white; }
+#header h1 { display: inline-block; }
+#header a { display: inline-block; width: 80px; color: white; line-height: 25px; height: 25px; border: 1px solid #ddd; background-color: #547F00; text-decoration: none; text-align: center; font-size: 10px; margin:8px; float: right; -webkit-border-radius: 2px; -moz-border-radius: 2px; border-radius: 2px;}
+#header a:hover { border-color: white; }
 
 #resource,#i18n,#overview { margin-top: 20px; margin-left: 10px; margin-right: 10px;}
 .method { margin-bottom: 15px; border: 1px solid #C3D9EC; background-color: #E7F0F7; -webkit-border-radius: 2px; -moz-border-radius: 2px; border-radius: 2px;}

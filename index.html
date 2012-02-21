@@ -2,53 +2,160 @@
 <html lang="en"> 
 <head> 
 	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" /> 
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>DateBox-Unbound Demos</title>
+	<link href='unbound.css' media='screen' rel='stylesheet' type='text/css' />
+	<title>DateBox-Unbound Documentation</title>
 	<script type="text/javascript" src="http://code.jquery.com/jquery-1.6.4.min.js"></script> 
 	<script type="text/javascript" src="http://dev.jtsage.com/DateBox-Unbound/js/datebox-unbound.js"></script>
 	<script type="text/javascript">
-		operations = [
-			['disp = new Date();', 'Get a New Date', 'disp'],
-			['x = disp.dbGetISO();', 'See the ISO 8601 Representation', 'x'],
-			['x = disp.dbGetCompare();', 'Get a comparable integer of the Date', 'x'],
-			['x = disp.dbGetEpoch();', 'Get unix Epoch representation of the Date', 'x'],
-			['disp2 = disp.dbCopy();', 'Get an exact copy of the date', 'disp2'],
-			['disp2 = disp.dbCopyModified([0,2]);', 'Get an copy of the date, but 2 months in the future', 'disp2'],
-			['disp2 = disp.dbCopyModified([0],[0,0,1]);', 'Get an copy of the date, but the first of the month', 'disp2'],
-			['disp.dbAdjust(0,1);', 'Add a year to the date (CHAINABLE!)', 'disp'],
-			['disp.dbAdjust(0,1).dbAdjust(1,2);', 'Add a year and two months to the date', 'disp'],
-			['disp.dbSet(0,2001).dbSet(1,0);', 'Now force the year to 2001 and the month to January (CHAINABLE)', 'disp'],
-			['x = disp.dbGetPOSIX("%A, %B %-d%o, %Y @ %l:%M %p");', 'Get a specific POSIX format', 'x'],
-			['x = disp.dbGetFirstDay();', 'Get the first DAY of the month', 'x'],
-			['x = disp.dbGetLastDate();', 'Get the last DATE of the month', 'x'],
-			['x = disp.dbGetFirstDay(11,2012);', 'Get the first DAY of an arbitrary month (Dec, 2012)', 'x'],
-			['x = disp.dbGetLastDate(1,2012);', 'Get the last DATE of an arbitrary month (Feb, 2012)', 'x'],
-			['x = disp.dbGetOrdinal(2);', 'Get an arbirary ordinal', 'x'],
-			['x = disp.dbGetTimeFormat();', 'Return the time formatted to selected language', 'x'],
-			['x = disp.dbGetDateFormat();', 'Return the date formatted to selected language', 'x'],
-			['x = disp.dbGetDateFormatLong();', 'Return the long date formatted to selected language', 'x'],
-			['x = disp.dbGetCalendar();', 'Return a calendar of the current month (multi-dimension array)', 'x'],
-			['x = disp.dbGetArray();', 'Return an array of the date', 'x'],
-			['x = disp.dbParsePOSIX("2015-10-23","%Y-%m-%d");', 'Parse a POSIX date (returns new date always)', 'x'],
-		];
-			
+		var	operations = {
+			'dbGetISO()' : ['retty = disp.dbGetISO();', 'retty'],
+			'dbGetCompare()' : ['retty = disp.dbGetCompare();', 'retty'],
+			'dbGetEpoch()' : ['retty = disp.dbGetEpoch();', 'retty'],
+			'dbCopy()' : ['retty = disp.dbCopy();', 'retty'],
+			'dbCopyModified(adjust, override)': ['retty = disp.dbCopyModified([0,2],[0,0,1]);', 'retty', 'Copy the date, but move it 2 months forward to the first of that month'],
+			'dbGetArray()' : ['retty = disp.dbGetArray();', 'retty'],
+			'dbAdjust{...}(amount)' : ['retty = disp.dbAdjustFullYear(2).dbAdjustDate(-3);', 'retty', 'Advance 2 years, while moving back 3 days'],
+			'dbAdjust(type,amount)' : ['retty = disp.dbAdjust(0,2).dbAdjust(2,-3);', 'retty', 'Advance 2 years, while moving back 3 days'],
+			'dbSet{...}(value)' : ['retty = disp.dbSetDate(1).dbSetFullYear(2001);', 'retty', 'Set to the first of the month, in the year 2001'],
+			'dbSet(type,value)' : ['retty = disp.dbSet(2,1).dbSet(0,2001);', 'retty', 'Set to the first of the month, in the year 2001'],
+			'dbGetFirstDay(overrideMonth, overrideYear)' : ['retty = disp.dbGetFirstDay();', 'retty'],
+			'dbGetLastDate(overrideMonth, overrideYear)' : ['retty = disp.dbGetLastDate();', 'retty'],
+			'dbGetTimeFormat()' : ['retty = disp.dbGetTimeFormat();', 'retty'],
+			'dbGetDateFormat()' : ['retty = disp.dbGetDateFormat();', 'retty'],
+			'dbGetDateFormatLong()' : ['retty = disp.dbGetDateFormatLong();', 'retty'],
+			'dbGetCalendar(label,otherMonths,start)' : ['retty = disp.dbGetCalendar();', 'retty'],
+			'dbGetDaysOfWeek()': ['retty = disp.dbGetDaysOfWeek();', 'retty'],
+			'dbGetDaysOfWeekShort()': ['retty = disp.dbGetDaysOfWeekShort();', 'retty'],
+			'dbGetMonthsOfYear()': ['retty = disp.dbGetMonthsOfYear();', 'retty'],
+			'dbGetMonthsOfYearShort()': ['retty = disp.dbGetMonthsOfYearShort();', 'retty'],
+			'dbParsePOSIX(date, format)': ['retty = disp.dbParsePOSIX("2015-10-23","%Y-%m-%d");', 'retty'],
+			'dbGetPOSIX(format)': ['retty = disp.dbGetPOSIX("%A, %B %-d%o, %Y @ %l:%M %p");', 'retty']
+		},
+		base = {
+			'dbGetISO()' : ['STRING', 'Get the ISO 8601 Representation', 'Return the ISO 8601 representation of the date as a string.'],
+			'dbGetDateFormat()' : ['STRING', 'Get the formatted date', 'Return the formatted date, formatted to the currently chossen langage'],
+			'dbGetDateFormatLong()' : ['STRING', 'Get the formatted long date', 'Return the formatted long date, formatted to the currently chossen langage'],
+			'dbGetTimeFormat()' : ['STRING', 'Get the formatted time', 'Return the formatted time, formatted to the currently chossen langage'],
+			'dbGetPOSIX(format)' : ['STRING', 'Get the formatted date', 'Return the formatted date, in the format specified'],
+			'dbAdjust{...}(amount)' : ['METHOD', 'Adjust the current date (chainable)', 'Adjust (offset) the current date.  These are shortcut methods, and the following are available:'],
+			'dbAdjust(type,amount)' : ['METHOD', 'Adjust the current date (chainable)', 'Adjust (offset) the current date'],
+			'dbSet{...}(value)' : ['METHOD', 'Set the current date (chainable)', 'Set the current date.  These are shortcut methods, and the following are available:'],
+			'dbSet(type,value)' : ['METHOD', 'Set the current date (chainable)', 'Set the current date'],
+			'dbCopy()' : ['DATE', 'Copy the date', 'Return a deep copy of the date to a new variable'],
+			'dbCopyModified(adjust, override)': ['DATE', 'Copy the date while modifying', 'Return a copy of the date that is modified from the original'],
+			'dbParsePOSIX(date, format)' : ['DATE', 'Parse a POSIX format date', 'Return a new date from the parsed value'],
+			'dbGetArray()' : ['ARRAY', 'Get an Array of the Date Elements', 'Return a 7 Element array of the date'],
+			'dbGetCalendar(label,otherMonths,start)' : ['ARRAY', 'Return an array full of a calendar', 'Return a 4, 5 or 6 element array, where each element contains an array of 7 elements - A pre formed calendar'],
+			'dbGetDaysOfWeek()': ['ARRAY', 'Days of the week', 'Return a 7 element array of the days of the week'],
+			'dbGetDaysOfWeekShort()': ['ARRAY', 'Abbreviated days of the week', 'Return a 7 element array of the abbreviated days of the week'],
+			'dbGetMonthsOfYear()': ['ARRAY', 'Months of the year', 'Return a 12 element array of the months of the year'],
+			'dbGetMonthsOfYearShort()': ['ARRAY', 'Abbreviated months of the year', 'Return a 12 element array of the abbreviated months of the year'],
+			'dbGetCompare()' : ['INTEGER', 'Get a comparable integer Representation', 'Return a comparable integer version of the date for use in conditionals.'],
+			'dbGetEpoch()' : ['INTEGER', 'Get the Unix Epoch Representation', 'Return the number of seconds elapsed since Unix Epoch (January 1, 1970).)'],
+			'dbGetFirstDay(overrideMonth, overrideYear)' : ['INTEGER', 'Get first DAY of the month', 'Return the first DAY of the month (0=Sun, 1=Mon, etc)'],
+			'dbGetLastDate(overrideMonth, overrideYear)' : ['INTEGER', 'Get last DATE of the month', 'Return the last DATE of the month (31,30,29 or 28)']
+		},
+		posixFormats = ['<strong>%%</strong> A Literal "%"','<strong>%a</strong> Abreviated name of day','<strong>%A</strong> Full name of day','<strong>%b</strong> Abreviated name of month','<strong>%B</strong> Full name of Month','<strong>%C</strong> Centruy (First 2 digits of year)','<strong>%d</strong> Day of month','<strong>%H</strong> Hour of day (01..23)','<strong>%I</strong> Hour of day (01..12)','<strong>%k</strong> Hour of day (01..23)','<strong>%l</strong> Hour of day (01..12)','<strong>%m</strong> Month of year (01..12)','<strong>%M</strong> Minutes (01..59)','<strong>%o</strong> Date ordinal (st / nd / rd / th)','<strong>%p</strong> Meridian Letters (AM/PM) in uppercase','<strong>%P</strong> Meridian Letters (AM/PM) in lowercase','<strong>%s</strong> The number of seconds since the Epoch.','<strong>%S</strong> Seconds (00..59)','<strong>%w</strong> Day of week (0-7), 0 = Sunday','<strong>%y</strong> Year (00-99) (2 Digit)','<strong>%Y</strong> Full Year (4 Digit)'],
+		shortcut = {
+			'dbSet{...}(value)' : ['dbSetFullYear(value)', 'dbSetMonth(value)', 'dbSetDate(value)', 'dbSetHour(value)', 'dbSetMinutes(value)', 'dbSetSeconds(value)', 'dbSetMilliseconds(value)'],
+			'dbAdjust{...}(amount)' : ['dbAdjustFullYear(amount)', 'dbAdjustMonth(amount)', 'dbAdjustDate(amount)', 'dbAdjustHour(amount)','dbAdjustMinutes(amount)', 'dbAdjustSeconds(amount)', 'dbAdjustMilliseconds(amount)'],
+			'dbParsePOSIX(date, format)': posixFormats,
+			'dbGetPOSIX(format)': posixFormats
+		},
+		param = {
+			'dbCopyModified(adjust, override)' : 
+				[[false,'adjust','array','A 7 Element array that will OFFSET the supplied date'],
+				[false,'override','array','A 7 Element array in which the non-zero elements will OVERRIDE the supplied date']],
+			'dbAdjust{...}(amount)' :
+				[[true,'amount','integer','A positive or negative offset to the given element']],
+			'dbAdjust(type,amount)':
+				[[true,'type','integer','The type of adjustment to make: 0=Year, 1=Month, etc..'],
+				[true,'amount','integer','A positive or negative offset to the given element']],
+			'dbSet{...}(value)' :
+				[[true,'value','integer','The value to assign to the given element']],
+			'dbSet(type,value)':
+				[[true,'type','integer','The type of adjustment to make: 0=Year, 1=Month, etc..'],
+				[true,'value','integer','The value to assign to the given element']],
+			'dbGetFirstDay(overrideMonth, overrideYear)' :
+				[[false,'overrideMonth','integer','Number of the month instead of what the date is set to'],
+				[false,'overrideYear','integer','Number of the year instead of what the date is set to']],
+			'dbGetLastDate(overrideMonth, overrideYear)' :
+				[[false,'overrideMonth','integer','Number of the month instead of what the date is set to'],
+				[false,'overrideYear','integer','Number of the year instead of what the date is set to']],
+			'dbGetCalendar(label,otherMonths,start)' :
+				[[false,'label','boolean','Include weekday labels as first element'],
+				[false,'otherMonths','boolean','Include past and next month dates, otherwise false'],
+				[false,'start','integer','Start the calendar on DAY # (0=Sun,1=Mon, etc)']],
+			'dbParsePOSIX(date, format)':
+				[[true,'date','string','The date to be parsed'],
+				[true,'format','string','The POSIX format the date is in']],
+			'dbGetPOSIX(format)':
+				[[true,'format','string','The POSIX format for the returned date']]
+		};
+		
 		$(document).ready(function () {
-			for ( thisOpt in operations ) {
-				$('#output').append('<dl><dt><strong>'+operations[thisOpt][1]+'</strong></dt>');
-				$('#output').append('<dd>'+operations[thisOpt][0]+'</dd>');
-				try {
-					eval(operations[thisOpt][0]);
-					$('#output').append('<dd><em>'+window[operations[thisOpt][2]]+'</em></dd></dl>');
-				} catch(e) {
-					$('#output').append('<dd><em>Failed on your browser: '+e.message+'</em></dd></dl>');
+			for ( x in base ) {
+				var methodHead = $('<div class="method"><div class="header"><h3><span class="header_type"></span><span class="header_name"></span></h3><span class="header_desc"></span></div></div>'),
+					methodContent = $('<div class="content"><h4>Description</h4><p class="long_desc"></p><h4>Parameters</h4><table class="param"><thead><tr><th class="thirdy">Parameter</th><th class="thirdy">Type</th><th>Description</th></tr></thead><tbody></tbody></table><h4>Example</h4><div class="example"></div></div>');
+				
+				methodHead.find('.header_name').text(x);	
+				methodHead.find('.header_type').text(base[x][0]);
+				methodHead.find('.header_desc').text(base[x][1]);
+				methodContent.find('.long_desc').text(base[x][2]);
+				
+				if ( typeof param[x] !== 'undefined' ) {
+					paramstr = ""
+					for ( y in param[x] ) {
+						paramstr += '<tr'+((param[x][y][0] === true)?' class="require"':'')+'><td>';
+						paramstr += param[x][y][1] + '</td><td class="param_type">' + param[x][y][2];
+						paramstr += '</td><td>' + param[x][y][3] + '</td></tr>';
+					}
+					methodContent.find('tbody').html(paramstr);
 				}
+				if ( typeof shortcut[x] !== 'undefined' ) {
+					shortcutstr = "<ul class='shorts'>"
+					for ( y in shortcut[x] ) {
+						shortcutstr += "<li>" +shortcut[x][y]+ "</li>";
+					}
+					$(shortcutstr).insertAfter(methodContent.find('.long_desc'));
+				}
+				if ( typeof operations[x] !== 'undefined' ) {
+					disp = new Date();
+					examplestr = '<span class="ex_pro">> </span>disp = new Date();<br />  '+disp;
+					if ( operations[x].length > 2 ) {
+						examplestr += '<br /><span class="ex_com">  // '+operations[x][2]+'</span>';
+					}
+					examplestr += '<br /><span class="ex_pro">> </span>'+operations[x][0]+'<br />';
+					try {
+						eval(operations[x][0]);
+						examplestr += '  ' + window[operations[x][1]];
+					} catch (e) {
+						examplestr += 'ERROR:: '+e.message;
+					}
+					methodContent.find('.example').html(examplestr);
+					
+				}
+				
+				methodContent.appendTo(methodHead);
+				methodHead.appendTo('#resource');
 			}
+		});
+		
+		$('.header').live('click', function() {
+			$(this).parent().find('.content').toggle('slow');
 		});
 	</script>
 	
 </head>
 <body>
-	<h1>DateBox Unbound</h1>
-	<p>The big DateBox functions in a non-jQM universe.</p>
-	<div id="output"></div>
+	<div id="header"><h1>DateBox Unbound</h1></div>
+	<div id="overview">
+		<p>DateBox Unbound is a series of enhancments to the native javascript Date() object, making it do many of the things that the jQM-DateBox widget relies on.  It seemed to be useful outside of that realm as well, so I've repackaged it as such.  Among other things, there is full POSIX formatting support, and full i18n support</p>
+	</div>
+	<div id="resource">
+	</div>
+	<div id="i18n">
+		<h3>Internationalization Support</h3>
+		<p>Section coming soon - but i18n support is built in</p>
+	</div>
 </html>

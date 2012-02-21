@@ -156,7 +156,6 @@
 			if ( typeof overrideYear === 'undefined' ) { overrideYear = 0; }
 			return 32 - this.dbCopyModified([0],[overrideYear,overrideMonth,32,13]).getDate();
 		},
-		
 		dbGetTimeFormat: function () {
 			return this.dbGetPOSIX(this.dbLang[this.dbUseLang].timeFormat);
 		},

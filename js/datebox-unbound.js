@@ -2,7 +2,7 @@
  * DateBox-Unbound : an Enhancment to JavaScript's Date() object
  * Copyright (c) JTSage
  * CC 3.0 Attribution.  May be relicensed without permission/notification.
- * https://github.com/jtsage/jquery-mobile-datebox
+ * https://github.com/jtsage/datebox-unbound
  */
 
 (function($) {

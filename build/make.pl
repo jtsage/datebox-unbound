@@ -4,7 +4,7 @@ $javapath = `which java`;
 chomp $javapath;
 $version = '';
 
-$slugtext = "/*\n * DateBox-Unbound : an Enhancment to JavaScript's Date() object\n * Copyright (c) JTSage\n * CC 3.0 Attribution.  May be relicensed without permission/notification.\n * https://github.com/jtsage/jquery-mobile-datebox\n */\n";
+$slugtext = "/*\n * DateBox-Unbound : an Enhancment to JavaScript's Date() object\n * Copyright (c) JTSage\n * CC 3.0 Attribution.  May be relicensed without permission/notification.\n * https://github.com/jtsage/datebox-unbound\n */\n";
 
 if ( $javapath eq '' ) {
 	die "Java not found, can not continue\n";

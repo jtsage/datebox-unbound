@@ -5,7 +5,15 @@
 	<link href='unbound.css' media='screen' rel='stylesheet' type='text/css' />
 	<title>DateBox-Unbound Documentation</title>
 	<script type="text/javascript" src="http://code.jquery.com/jquery-1.6.4.min.js"></script> 
-	<script type="text/javascript" src="http://dev.jtsage.com/DateBox-Unbound/js/datebox-unbound.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/cdn/dateboxunbound/datebox-unbound.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/cdn/dateboxunbound/i18n/datebox-unbound.i18n.ru.js"></script>
+	<script type="text/javascript" src="http://dev.jtsage.com/cdn/dateboxunbound/i18n/datebox-unbound.i18n.de.js"></script>
+	<!--
+	 * DateBox-Unbound : an Enhancment to JavaScript's Date() object
+	 * Copyright (c) JTSage
+	 * CC 3.0 Attribution.  May be relicensed without permission/notification.
+	 * https://github.com/jtsage/datebox-unbound
+	-->
 	<script type="text/javascript">
 		var	operations = {
 			'dbGetISO()' : ['retty = disp.dbGetISO();', 'retty'],
@@ -137,12 +145,19 @@
 						examplestr += 'ERROR:: '+e.message;
 					}
 					methodContent.find('.example').html(examplestr);
-					
 				}
 				
 				methodContent.appendTo(methodHead);
 				methodHead.appendTo('#resource');
 			}
+			
+			lang1 = new Date();
+			examplestr  = '<span class="ex_pro">> </span>disp = new Date();<br />  '+lang1;
+			lang1.dbUseLang = 'de';
+			examplestr += '<br /><span class="ex_pro">> </span>disp.dbUseLang = "de"; retty = disp.dbGetDateFormatLong();<br />  '+lang1.dbGetDateFormatLong();
+			lang1.dbUseLang = 'ru';
+			examplestr += '<br /><span class="ex_pro">> </span>disp.dbUseLang = "ru"; retty = disp.dbGetDateFormatLong();<br />  '+lang1.dbGetDateFormatLong();
+			$('#langExample').html(examplestr);
 		});
 		
 		$('.header').live('click', function() {
@@ -164,6 +179,12 @@
 	</div>
 	<div id="i18n">
 		<h3>Internationalization Support</h3>
-		<p>Section coming soon - but i18n support is built in</p>
+		<p>Internationalization and localization are built in.  The library can be used to pull the date in any other linked in language.  In keeping with good practice, there is no limit to the amount of languages that you can load at one time. For instance, these demos load 2 additional language files, Russian and German.</p>
+		<p class="next">To load a language, simple link it from the language files <a href="http://dev.jtsage.com/cdn/dateboxunbound/i18n/">repository</a>.</p>
+		<p class="next">To use the language, you need only set the dbUseLang property of the date object:</p>
+		<div id="langExample" class="example"></div>
+	</div>
+	<div id="footer">
+		<h3>(c) 2012 JTSage - CC 3.0 Attribution License</h3>
 	</div>
 </html>

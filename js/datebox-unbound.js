@@ -248,6 +248,18 @@
 			}
 			return cal;
 		},
+		dbGetRecurring: function(number) {
+			var gen = this.dbCopy(),
+				retty = [];
+				
+			if ( typeof number !== 'number' ) { number = 1; } 
+			if ( number > 0 ) {
+				for ( i=0; i<number; i++ ) { retty.push(gen.dbAdjust(2,7).dbCopy()); }
+			} else if ( number < 0 ) {
+				for ( i=0; i>number; i-- ) { retty.push(gen.dbAdjust(2,-7).dbCopy()); }
+			}
+			return retty;
+		},
 		dbParsePOSIX: function (date, format) {
 			var self = this,
 				adv = null,

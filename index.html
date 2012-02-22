@@ -29,7 +29,8 @@
 			'dbGetMonthsOfYear()': ['retty = disp.dbGetMonthsOfYear();', 'retty'],
 			'dbGetMonthsOfYearShort()': ['retty = disp.dbGetMonthsOfYearShort();', 'retty'],
 			'dbParsePOSIX(date, format)': ['retty = disp.dbParsePOSIX("2015-10-23","%Y-%m-%d");', 'retty'],
-			'dbGetPOSIX(format)': ['retty = disp.dbGetPOSIX("%A, %B %-d%o, %Y @ %l:%M %p");', 'retty']
+			'dbGetPOSIX(format)': ['retty = disp.dbGetPOSIX("%A, %B %-d%o, %Y @ %l:%M %p");', 'retty'],
+			'dbGetRecurring(number)': ['retty = disp.dbGetRecurring(4)', 'retty']
 		},
 		base = {
 			'dbGetISO()' : ['STRING', 'Get the ISO 8601 Representation', 'Return the ISO 8601 representation of the date as a string.'],
@@ -50,6 +51,7 @@
 			'dbGetDaysOfWeekShort()': ['ARRAY', 'Abbreviated days of the week', 'Return a 7 element array of the abbreviated days of the week'],
 			'dbGetMonthsOfYear()': ['ARRAY', 'Months of the year', 'Return a 12 element array of the months of the year'],
 			'dbGetMonthsOfYearShort()': ['ARRAY', 'Abbreviated months of the year', 'Return a 12 element array of the abbreviated months of the year'],
+			'dbGetRecurring(number)': ['ARRAY', 'Get next recurring dates', 'Get the next [number] of recurring DAYs'],
 			'dbGetCompare()' : ['INTEGER', 'Get a comparable integer Representation', 'Return a comparable integer version of the date for use in conditionals.'],
 			'dbGetEpoch()' : ['INTEGER', 'Get the Unix Epoch Representation', 'Return the number of seconds elapsed since Unix Epoch (January 1, 1970).)'],
 			'dbGetFirstDay(overrideMonth, overrideYear)' : ['INTEGER', 'Get first DAY of the month', 'Return the first DAY of the month (0=Sun, 1=Mon, etc)'],
@@ -90,7 +92,9 @@
 				[[true,'date','string','The date to be parsed'],
 				[true,'format','string','The POSIX format the date is in']],
 			'dbGetPOSIX(format)':
-				[[true,'format','string','The POSIX format for the returned date']]
+				[[true,'format','string','The POSIX format for the returned date']],
+			'dbGetRecurring(number)':
+				[[true,'number','integer','An integer of number of dates to retieve - can be negative']]
 		};
 		
 		$(document).ready(function () {

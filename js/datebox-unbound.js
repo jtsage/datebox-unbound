@@ -7,6 +7,9 @@
 
 (function($) {
 	$.extend(Date.prototype, {
+		_n: function (number, def) {
+			return ( number < 0 ) ? def : number;
+		},
 		_dbZPad: function (number) {
 			if ( number < 10 ) { return "0" + String(number); }
 			else { return String(number); }
@@ -298,15 +301,15 @@
 				exp_format = null,
 				exp_temp = null, i,
 				retty = null,
-				run = { date: false, month: false },
-				found_othr = [false,false,false],
-				found_date = this.dbGetArray();
+				exp_names = [],
+				d = { year: -1, mont: -1, date: -1, hour: -1, mins: -1, secs: -1, week: false, wtyp: 4, wday: false, yday: false, meri: 0 };
 				
 			if ( typeof date === 'undefined' || typeof format === 'undefined' ) { throw new Error("You must supply a date and format"); }
 			
 			adv = format;
 			
 			adv = adv.replace(/%(0|-)*([a-z])/gi, function(match, pad, oper) {
+				exp_names.push(oper);
 				switch (oper) {
 					case 'p':
 					case 'P':
@@ -331,7 +334,7 @@
 					case 'y': return '(' + match + '|' +'[0-9]{2}' + ')';
 					case 'G':
 					case 'Y': return '(' + match + '|' +'[0-9]{1,4}' + ')';
-					default: return '.+?';
+					default: exp_names.pop(); return '.+?';
 				}
 			});
 			adv = new RegExp('^' + adv + '$');
@@ -341,67 +344,61 @@
 			if ( exp_input === null || exp_input.length !== exp_format.length ) {
 				throw new Error("Formats Mis-Match!");
 			} else {
-				for ( i=0; i<exp_input.length; i++ ) { //0y 1m 2d 3h 4i 5a 6epoch
-					if ( exp_format[i] === '%s' )                { found_date[6] = parseInt(exp_input[i],10); }
-					if ( exp_format[i].match(/^%.*S$/) )         { found_date[5] = parseInt(exp_input[i],10); }
-					if ( exp_format[i].match(/^%.*M$/) )         { found_date[4] = parseInt(exp_input[i],10); }
-					if ( exp_format[i].match(/^%.*(H|k|I|l)$/) ) { found_date[3] = parseInt(exp_input[i],10); }
-					if ( exp_format[i].match(/^%.*d$/) )         { found_date[2] = parseInt(exp_input[i],10); run.date = true; }
-					if ( exp_format[i].match(/^%.*m$/) )         { found_date[1] = parseInt(exp_input[i],10)-1; run.month = true;}
-					if ( exp_format[i].match(/^%.*(Y|G)$/) )     { found_date[0] = parseInt(exp_input[i],10); }
-					if ( exp_format[i].match(/^%.*(W|V|U)$/) )   { found_othr[0] = parseInt(exp_input[i],10); }
-					if ( exp_format[i].match(/^%.*(u|w)$/) )     { found_othr[1] = parseInt(exp_input[i],10); }
-					if ( exp_format[i].match(/^%.*j$/) )         { found_othr[2] = parseInt(exp_input[i],10); }
-					if ( exp_format[i].match(/^%.*(y|g)$/) ) { 
-						if ( parseInt(exp_input[i],10) < 38 ) {
-							found_date[0] = parseInt('20' + exp_input[i],10);
-						} else {
-							found_date[0] = parseInt('19' + exp_input[i],10);
-						}
-					}
-					if ( exp_format[i].match(/^%(0|-)*(p|P)$/) ) {
-						if ( exp_input[i].toLowerCase().charAt(0) === 'a' && found_date[3] === 12 ) {
-							found_date[3] = 0;
-						} else if ( exp_input[i].toLowerCase().charAt(0) === 'p' && found_date[3] !== 12 ) {
-							found_date[3] = found_date[3] + 12;
-						}
-					}
-					if ( exp_format[i] === '%B' ) {
-						exp_temp = $.inArray(exp_input[i], self.dbLang[self.dbUseLang].monthsOfYear);
-						if ( exp_temp > -1 ) { found_date[1] = exp_temp; }
-					}
-					if ( exp_format[i] === '%b' ) {
-						exp_temp = $.inArray(exp_input[i], self.dbLang[self.dbUseLang].monthsOfYearShort);
-						if ( exp_temp > -1 ) { found_date[1] = exp_temp; }
+				for ( i=1; i<exp_input.length; i++ ) {
+					switch ( exp_names[i-1] ) {
+						case 's': return new Date(parseInt(exp_input[i],10) * 1000);
+						case 'Y':
+						case 'G': d.year = parseInt(exp_input[i],10); break;
+						case 'y':
+						case 'g':
+							if ( o.afterToday === true || parseInt(exp_input[i],10) < 38 ) {
+								d.year = parseInt('20' + exp_input[i],10);
+							} else {
+								d.year = parseInt('19' + exp_input[i],10);
+							} break;
+						case 'm': d.mont = parseInt(exp_input[i],10)-1; break;
+						case 'd': d.date = parseInt(exp_input[i],10); break;
+						case 'H':
+						case 'k':
+						case 'I':
+						case 'l': d.hour = parseInt(exp_input[i],10); break;
+						case 'M': d.mins = parseInt(exp_input[i],10); break;
+						case 'S': d.secs = parseInt(exp_input[i],10); break;
+						case 'u': d.wday = parseInt(exp_input[i],10)-1; break;
+						case 'w': d.wday = parseInt(exp_input[i],10); break;
+						case 'j': d.yday = parseInt(exp_input[i],10); break;
+						case 'V': d.week = parseInt(exp_input[i],10); d.wtyp = 4; break;
+						case 'U': d.week = parseInt(exp_input[i],10); d.wtyp = 0; break;
+						case 'W': d.week = parseInt(exp_input[i],10); d.wtyp = 1; break;
+						case 'p':
+						case 'P': d.meri = (( exp_input[i].toLowerCase() === w.__('meridiem')[0].toLowerCase() )? -1:1); break;
+						case 'b':
+							exp_temp = $.inArray(exp_input[i], w.__('monthsOfYear'));
+							if ( exp_temp > -1 ) { d.mont = exp_temp; }
+							break;
+						case 'B':
+							exp_temp = $.inArray(exp_input[i], w.__('monthsOfYearShort'));
+							if ( exp_temp > -1 ) { d.mont = exp_temp; }
+							break;
 					}
 				}
-				if ( exp_format[0].match(/%s/) ) {
-					retty = new Date(found_date[6] * 1000);
-				} else if ( exp_format[0].match(/%(.)*(I|l|H|k|s|M)/) ) { 
-					retty = new Date(found_date[0], found_date[1], found_date[2], found_date[3], found_date[4], found_date[5], 0);
-					if ( found_date[0] < 100 ) { date.setFullYear(found_date[0]); }
-				} else {
-					retty = new Date(found_date[0], found_date[1], found_date[2], 0, 0, 0, 0); // Normalize time for raw dates
-					if ( found_date[0] < 100 ) { date.setFullYear(found_date[0]); }
-				}
-				
-				if ( run.month === false || run.date === false ) {
-					if ( found_othr[0] !== false && run.month === false ) {
-						if ( exp_format[0].match(/%(.)*W$/) ) { retty.dbSetWeek(1,found_othr[0]); }
-						else if ( exp_format[0].match(/%(.)*U$/) ) { retty.dbSetWeek(0,found_othr[0]); }
-						else { retty.dbSetWeek(4,found_othr[0]); }
-						
-						if ( run.date === true ) { retty.setDate(found_date[2]); }
-					}
-					if ( found_othr[1] !== false && run.date === false ) {
-						if ( exp_format[0].match(/%(.)*u$/) ) { retty.dbAdjust(2,(found_othr[1]-1) - retty.getDay()); }
-						else { retty.dbAdjust(2,(found_othr[1] - retty.getDay())); }
-					}
-					if ( found_othr[2] !== false && run.date === false && run.month === false ) {
-						retty.dbSet(1,0).dbSet(2,1).dbAdjust(2,(found_othr[2]-1));
-					}
+				if ( d.meri !== 0 ) {
+					if ( d.meri === -1 && d.hour === 12 ) { d.hour = 0; }
+					if ( d.meri === 1 && d.hour !== 12 ) { d.hour = d.hour + 12; }
 				}
 				
+				retty = new Date(self._n(d.year,1),self._n(d.mont,1),self._n(d.date,1),self._n(d.hour,0),self._n(d.mins,0),self._n(d.secs,0),0);
+				
+				if ( d.year < 100 && d.year !== -1 ) { retty.setFullYear(d.year); }
+				
+				if ( ( d.mont > -1 && d.date > -1 ) ) { return retty; }
+				
+				if ( d.week !== false ) {
+					retty.dbSetWeek(d.wtyp, d.week);
+					if ( d.date > -1 ) { retty.setDate(d.date); } 
+				}
+				if ( d.yday !== false ) { retty.dbSet(1,0).dbSet(2,1).dbAdjust(2,(d.yday-1)); }
+				if ( d.wday !== false ) { retty.dbAdjust(2,(d.wday - date.getDay())); }
 				
 				return retty;
 			}

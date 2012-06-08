@@ -53,6 +53,8 @@
 						return self.dbGetEpoch();
 					case 'S': // Seconds
 						return (( pad === '-' ) ? self.getSeconds() : self._dbZPad(self.getSeconds()));
+					case 'u':
+						return (( pad === '-' ) ? self.getDay() + 1 : self._dbZPad(self.getDay()+1));
 					case 'w': // Day of week
 						return self.getDay();
 					case 'y': // Year (2 digit)
@@ -61,6 +63,35 @@
 						return self.getFullYear();
 					case 'o': // Ordinals
 						return self.dbGetOrdinal();
+					case 'V':
+						return (( pad === '-' ) ? self.dbGetISOWeek() : self._dbZPad(self.dbGetISOWeek()));
+					case 'U':
+						return (( pad === '-' ) ? self.dbGetFullWeekSun() : self._dbZPad(self.dbGetFullWeekSun(0)));
+					case 'W':
+						return (( pad === '-' ) ? self.dbGetFullWeekMon() : self._dbZPad(self.dbGetFullWeekMon(1)));
+					case 'j':
+						tmp = new Date(self.getFullYear(),0,1);
+						tmp = Math.ceil((self - tmp) / 86400000)+1;
+						if ( tmp < 10 ) {
+							return '00' + tmp;
+						} else if ( tmp < 100 ) {
+							return '0' + tmp;
+						}
+						return tmp;
+					case 'G':
+						if ( self.dbGetWeek(4) === 1 && self.getMonth() > 0 ) {
+							return self.getFullYear() + 1;
+						} else if ( self.dbGetWeek(4) > 51 && self.getMonth() < 11 ) {
+							return self.getFullYear() - 1;
+						}
+						return self.getFullYear();
+					case 'g':
+						if ( self.dbGetWeek(4) === 1 && self.getMonth() > 0 ) {
+							return parseInt(self.getFullYear().toString().substr(2,2),10) + 1;
+						} else if ( self.dbGetWeek(4) > 51 && self.getMonth() < 11 ) {
+							return parseInt(self.getFullYear().toString().substr(2,2),10) - 1;
+						}
+						return self.getFullYear().toString().substr(2,2);
 					default:
 						return match;
 				}
@@ -267,6 +298,8 @@
 				exp_format = null,
 				exp_temp = null, i,
 				retty = null,
+				run = { date: false, month: false },
+				found_othr = [false,false,false],
 				found_date = this.dbGetArray();
 				
 			if ( typeof date === 'undefined' || typeof format === 'undefined' ) { throw new Error("You must supply a date and format"); }
@@ -286,9 +319,17 @@
 					case 'm':
 					case 'M':
 					case 'S':
+					case 'u':
+					case 'v':
+					case 'W':
+					case 'V':
+					case 'U':
 					case 'd': return '(' + match + '|' + (( pad === '-' ) ? '[0-9]{1,2}' : '[0-9]{2}') + ')';
 					case 's': return '(' + match + '|' +'[0-9]+' + ')';
+					case 'j': return '(' + match + '|' + '[0-9]{3}' + ')';
+					case 'g':
 					case 'y': return '(' + match + '|' +'[0-9]{2}' + ')';
+					case 'G':
 					case 'Y': return '(' + match + '|' +'[0-9]{1,4}' + ')';
 					default: return '.+?';
 				}
@@ -305,10 +346,13 @@
 					if ( exp_format[i].match(/^%.*S$/) )         { found_date[5] = parseInt(exp_input[i],10); }
 					if ( exp_format[i].match(/^%.*M$/) )         { found_date[4] = parseInt(exp_input[i],10); }
 					if ( exp_format[i].match(/^%.*(H|k|I|l)$/) ) { found_date[3] = parseInt(exp_input[i],10); }
-					if ( exp_format[i].match(/^%.*d$/) )         { found_date[2] = parseInt(exp_input[i],10); }
-					if ( exp_format[i].match(/^%.*m$/) )         { found_date[1] = parseInt(exp_input[i],10)-1; }
-					if ( exp_format[i].match(/^%.*Y$/) )         { found_date[0] = parseInt(exp_input[i],10); }
-					if ( exp_format[i].match(/^%.*y$/) ) { 
+					if ( exp_format[i].match(/^%.*d$/) )         { found_date[2] = parseInt(exp_input[i],10); run.date = true; }
+					if ( exp_format[i].match(/^%.*m$/) )         { found_date[1] = parseInt(exp_input[i],10)-1; run.month = true;}
+					if ( exp_format[i].match(/^%.*(Y|G)$/) )     { found_date[0] = parseInt(exp_input[i],10); }
+					if ( exp_format[i].match(/^%.*(W|V|U)$/) )   { found_othr[0] = parseInt(exp_input[i],10); }
+					if ( exp_format[i].match(/^%.*(u|w)$/) )     { found_othr[1] = parseInt(exp_input[i],10); }
+					if ( exp_format[i].match(/^%.*j$/) )         { found_othr[2] = parseInt(exp_input[i],10); }
+					if ( exp_format[i].match(/^%.*(y|g)$/) ) { 
 						if ( parseInt(exp_input[i],10) < 38 ) {
 							found_date[0] = parseInt('20' + exp_input[i],10);
 						} else {
@@ -340,7 +384,71 @@
 					retty = new Date(found_date[0], found_date[1], found_date[2], 0, 0, 0, 0); // Normalize time for raw dates
 					if ( found_date[0] < 100 ) { date.setFullYear(found_date[0]); }
 				}
+				
+				if ( run.month === false || run.date === false ) {
+					if ( found_othr[0] !== false && run.month === false ) {
+						if ( exp_format[0].match(/%(.)*W$/) ) { retty.dbSetWeek(1,found_othr[0]); }
+						else if ( exp_format[0].match(/%(.)*U$/) ) { retty.dbSetWeek(0,found_othr[0]); }
+						else { retty.dbSetWeek(4,found_othr[0]); }
+						
+						if ( run.date === true ) { retty.setDate(found_date[2]); }
+					}
+					if ( found_othr[1] !== false && run.date === false ) {
+						if ( exp_format[0].match(/%(.)*u$/) ) { retty.dbAdjust(2,(found_othr[1]-1) - retty.getDay()); }
+						else { retty.dbAdjust(2,(found_othr[1] - retty.getDay())); }
+					}
+					if ( found_othr[2] !== false && run.date === false && run.month === false ) {
+						retty.dbSet(1,0).dbSet(2,1).dbAdjust(2,(found_othr[2]-1));
+					}
+				}
+				
+				
 				return retty;
+			}
+		},
+		dbSetISOWeek: function(num) { return this.dbSetWeek(4); },
+		dbSetFullMonWeek: function(num) { return this.dbSetWeek(1); },
+		dbSetFullSunWeek: function(num) { return this.dbSetWeek(0); },
+		dbSetWeek: function (type,num) {
+			if ( type === 4 ) {
+				return this.dbSet(1,0).dbSet(2,1).dbSetFirstDay(4).dbAdjust(2,-3).dbAdjust(2,(num-1)*7);
+			}
+			return this.dbSet(1,0).dbSet(2,1).dbSetFirstDay(type).dbAdjust(2,(num-1)*7);
+		},
+		dbSetFirstDay: function (day) {
+			this.dbSet(2,1).dbAdjust(2, (day - this.getDay()));
+			if ( this.getDate() > 10 ) { this.dbAdjust(2,7); }
+			return this;
+		},
+		dbGetFullSunWeek: function() { return this.dbGetWeek(0); },
+		dbGetFullMonWeek: function() { return this.dbGetWeek(1); },
+		dbGetISOWeek: function () { return this.dbGetWeek(4); },
+		dbGetWeek: function(type) {
+			var t1, t2;
+					
+			switch ( type ) {
+				case 0:
+					t1 = this.dbCopyModified([0,-1*this.getMonth()]).dbSetFirstDay(0);
+					return Math.floor((this.getTime() - t1.getTime()) / 6048e5) + 1;
+				case 1:
+					t1 = this.dbCopyModified([0,-1*this.getMonth()]).dbSetFirstDay(1);
+					return Math.floor((this.getTime() - t1.getTime()) / 6048e5) + 1;
+				case 4:
+					// this line is some bullshit.  but it does work.
+					// (trap for dec 29, 30, or 31st being in the new year's week - these are the
+					//  only 3 that can possibly fall like this)
+					if ( this.getMonth() === 11 && this.getDate() > 28 ) { return 1; } 
+							
+					t1 = this.dbCopyModified([0,-1*this.getMonth()]).dbSetFirstDay(4).dbCopyModified([0,0,-3]);
+					t2 = Math.floor((this.getTime() - t1.getTime()) / 6048e5) + 1;
+							
+					if ( t2 < 1 ) {
+						t1 = this.dbCopyModified([-1,-1*this.getMonth()]).dbSetFirstDay(4).dbCopyModified([0,0,-3]);
+						return Math.floor((this.getTime() - t1.getTime()) / 6048e5) + 1;
+					}
+					return t2;
+				default:
+					return 0;
 			}
 		},
 		dbGetOrdinal: function (number) {
